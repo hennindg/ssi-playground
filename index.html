@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SSI-cov playground</title>
+  <meta name="description" content="Covariance-driven stochastic subspace identification on a simulated girder, running in the browser.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23161618'/%3E%3Cpath d='M5 21c3.5-11 7.5-11 11 0s7.5 11 11 0' stroke='%233987e5' stroke-width='2.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 21c3.5-11 7.5-11 11 0s7.5 11 11 0" /></svg>
+      <h1>SSI-cov playground</h1>
+    </div>
+    <nav class="links">
+      <span id="status" class="status"><span class="dot"></span><span id="status-text">Starting</span></span>
+      <button id="theme" class="icon-button" title="Toggle light / dark" aria-label="Toggle light or dark theme">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+      </button>
+      <a class="icon-button" href="https://github.com/hennindg/ssi-playground" title="Source on GitHub" aria-label="Source on GitHub">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M12 .5a11.5 11.5 0 0 0-3.6 22.4c.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A11.5 11.5 0 0 0 12 .5Z"/></svg>
+      </a>
+    </nav>
+  </header>
+
+  <main class="layout">
+    <aside class="controls">
+      <p class="intro">A simply supported girder with known modes is excited by white noise and measured by accelerometers. SSI-cov identifies the modes from the record alone. Compare with the truth.</p>
+
+      <section class="group">
+        <div class="group-head">
+          <h2>Modes</h2>
+          <span class="hint">f [Hz] &middot; &zeta; [%]</span>
+        </div>
+        <div id="mode-list" class="mode-list"></div>
+        <button id="add-mode" class="ghost-button">+ Add mode</button>
+      </section>
+
+      <section class="group">
+        <h2>Measurement</h2>
+        <label class="slider">
+          <span class="slider-label">Sensors</span><output id="sensors-out"></output>
+          <input id="sensors" type="range" min="2" max="12" step="1" value="9">
+        </label>
+        <label class="slider">
+          <span class="slider-label">Sensor noise</span><output id="noise-out"></output>
+          <input id="noise" type="range" min="0" max="100" step="1" value="10">
+        </label>
+        <label class="slider">
+          <span class="slider-label">Record length</span><output id="duration-out"></output>
+          <input id="duration" type="range" min="5" max="180" step="5" value="30">
+        </label>
+        <p class="fineprint">Sample rate 2 Hz &middot; noise relative to the RMS response</p>
+      </section>
+
+      <section class="group">
+        <h2>SSI-cov</h2>
+        <label class="slider">
+          <span class="slider-label">Block rows</span><output id="rows-out"></output>
+          <input id="rows" type="range" min="10" max="120" step="5" value="60">
+        </label>
+        <label class="slider">
+          <span class="slider-label">Max model order</span><output id="order-out"></output>
+          <input id="order" type="range" min="10" max="120" step="2" value="60">
+        </label>
+        <p class="fineprint">Stable: &Delta;f &lt; 1 %, &Delta;&zeta; &lt; 5 %, MAC &gt; 0.95</p>
+      </section>
+
+      <div class="actions">
+        <button id="new-record" class="button">New record</button>
+        <button id="repeat" class="button primary">Run 20 records</button>
+      </div>
+      <p id="run-info" class="fineprint run-info"></p>
+    </aside>
+
+    <section class="results">
+      <article class="panel">
+        <header class="panel-head">
+          <h2>Record</h2>
+          <span class="panel-note" id="record-note">first 10 minutes, three sensors</span>
+        </header>
+        <div id="trace" class="chart chart-trace"></div>
+      </article>
+
+      <article class="panel">
+        <header class="panel-head">
+          <h2>Stabilization diagram</h2>
+          <ul class="legend">
+            <li><span class="key key-stable"></span>Stable pole</li>
+            <li><span class="key key-other"></span>Other pole</li>
+            <li><span class="key key-true"></span>True frequency</li>
+            <li><span class="key key-spectrum"></span>Spectrum</li>
+          </ul>
+        </header>
+        <div id="stab" class="chart chart-stab"></div>
+      </article>
+
+      <div class="two-up">
+        <article class="panel">
+          <header class="panel-head">
+            <h2>Mode shapes</h2>
+            <ul class="legend">
+              <li><span class="key key-line"></span>True</li>
+              <li><span class="key key-stable"></span>Identified</li>
+            </ul>
+          </header>
+          <div id="shapes" class="shapes"></div>
+        </article>
+
+        <article class="panel">
+          <header class="panel-head">
+            <h2>Damping</h2>
+            <ul class="legend">
+              <li><span class="key key-true-h"></span>True</li>
+              <li><span class="key key-stable"></span>Each record</li>
+              <li><span class="key key-mean"></span>Mean</li>
+            </ul>
+          </header>
+          <div id="damping" class="chart chart-damping"></div>
+        </article>
+      </div>
+
+      <article class="panel">
+        <header class="panel-head">
+          <h2>Identified modes</h2>
+          <span class="panel-note" id="table-note"></span>
+        </header>
+        <div class="table-wrap">
+          <table id="table">
+            <thead>
+              <tr>
+                <th>Mode</th><th>f true</th><th>f identified</th><th>&Delta;f</th>
+                <th>&zeta; true</th><th>&zeta; identified</th><th>&zeta; mean</th><th>bias</th><th>MAC</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </article>
+
+      <footer class="notes">
+        <p>Each mode is a single-degree-of-freedom oscillator with its own white-noise force, discretized exactly, so the true frequency and damping are known. Mode <i>k</i> has <i>k</i> half-waves along the girder; all modes have the same response level.</p>
+        <p>Identification: output covariances up to lag 2<i>s</i>&minus;1 in a block Toeplitz matrix, SVD, system matrix from the shift structure of the observability matrix (Peeters &amp; De Roeck, 1999). Stable poles are grouped into modes by single-linkage clustering on frequency difference + (1 &minus; MAC). Bias is identified minus true damping, averaged over the records run with the current settings.</p>
+        <p>Python and numpy run in the browser through <a href="https://pyodide.org">Pyodide</a>. The SSI code is taken from an operational modal analysis of the Hardanger Bridge (1310 m main span).</p>
+      </footer>
+    </section>
+  </main>
+
+  <div id="tooltip" class="tooltip" role="tooltip"></div>
+  <script src="app.js"></script>
+</body>
+</html>
