@@ -1,48 +1,53 @@
-# SSI-cov playground
+# Interactive SSI-cov
 
-Covariance-driven stochastic subspace identification (SSI-cov), running in the browser.
+Covariance-driven stochastic subspace identification (SSI-cov) of a simulated girder with known
+modal properties, computed in the browser.
 
-**[Open the playground](https://hennindg.github.io/ssi-playground/)**
+**[Open the application](https://hennindg.github.io/ssi-playground/)**
 
 ![Screenshot](docs/screenshot.png)
 
-A simply supported girder with modes you choose (frequency and damping) is excited by white noise
-and measured by a row of accelerometers. SSI-cov identifies the modes from the record alone, and
-the page compares them with the truth: stabilization diagram, mode shapes, and the damping over
-many records.
+A simply supported girder with user-defined natural frequencies and damping ratios is excited by
+white noise and measured by a row of accelerometers. SSI-cov identifies the modes from the simulated
+response alone, and the application compares the results with the true values: stabilization
+diagram, mode shapes, and the distribution of the identified damping ratios over repeated records.
 
-Things to try:
+## Parameter studies
 
-- **Block rows.** With more block rows (longer time lags) the damping of the heavily damped modes
-  is underestimated more. Run 20 records at 30 and at 120 block rows and compare the bias.
-- **Record length.** The bias shrinks for longer records; it is a finite-record effect.
-- **Close modes, few sensors.** Put two modes 2 % apart and reduce the sensors.
-- **Noise.** At high sensor noise the weakly excited columns in the stabilization diagram break up.
+- **Block rows.** A larger number of block rows (a longer maximum time lag) increases the
+  underestimation of damping for the more heavily damped modes. Compare the bias over 20 records
+  at 30 and at 120 block rows.
+- **Record length.** The bias decreases with record length, which shows that it is a finite-record
+  effect.
+- **Closely spaced modes.** Two modes 2 % apart in frequency, identified with a reduced number of
+  sensors.
+- **Measurement noise.** At high noise levels, the stable pole columns of weakly excited modes break
+  up in the stabilization diagram.
 
-## How it works
+## Method
 
-| Step | |
+| Step | Description |
 |---|---|
-| Simulation | Each mode is a single-degree-of-freedom oscillator with its own white-noise force, discretized exactly (zero-order hold) and started from its stationary state, so the true frequency and damping are known exactly. Mode *k* has *k* half-waves, sin(kπx/L). All modes have the same response level; sensor noise is a fraction of the RMS response. Sample rate 2 Hz. |
-| SSI-cov | Output covariances (via FFT) up to lag 2s−1, block Toeplitz matrix, U and S from the eigen-decomposition of T·Tᵀ, system matrix from the shift structure of the observability matrix, poles from its eigenvalues (Peeters & De Roeck, 1999). |
-| Stability | A pole is stable when, compared with the previous model order, Δf < 1 %, Δζ < 5 % and MAC > 0.95. |
-| Mode picking | Single-linkage clustering of the stable poles on Δf/f + (1 − MAC), cut at 0.05; a mode must appear at a quarter of the model orders. Damping outliers are removed with the box-plot rule. |
+| Simulation | Each mode is a single-degree-of-freedom oscillator driven by independent white noise, discretized exactly (zero-order hold) and started from its stationary state, so the true natural frequency and damping ratio are known exactly. Mode *k* has *k* half-waves, sin(kπx/L). All modes have the same response level; sensor noise is specified relative to the RMS response. Sample rate 2 Hz. |
+| SSI-cov | Output covariances (computed via FFT) up to time lag 2s−1, block Toeplitz matrix, singular vectors and values from the eigen-decomposition of T·Tᵀ, system matrix from the shift structure of the observability matrix, poles from its eigenvalues (Peeters & De Roeck, 1999). |
+| Stability | A pole is stable when, relative to the previous model order, Δf < 1 %, Δζ < 5 % and MAC > 0.95. |
+| Mode selection | Single-linkage clustering of the stable poles on Δf/f + (1 − MAC), cut at 0.05; a mode must appear in at least a quarter of the model orders. Damping outliers are removed with the box-plot rule. |
 
-The computation is plain Python and numpy in [`python/ssi_core.py`](python/ssi_core.py), run in a
-Web Worker by [Pyodide](https://pyodide.org). The page itself (`index.html`, `app.js`, `style.css`)
-has no build step and no framework; the plots are hand-written SVG.
+The computations are implemented in Python and NumPy in [`python/ssi_core.py`](python/ssi_core.py)
+and run in a Web Worker through [Pyodide](https://pyodide.org). The page (`index.html`, `app.js`,
+`style.css`) uses no build step and no framework; the figures are rendered directly as SVG.
 
-The SSI and clustering functions come from an
+The SSI-cov and clustering functions are taken from an
 [operational modal analysis of the Hardanger Bridge](https://github.com/hennindg/hardanger-oma)
-(1310 m main span, Norway), where the same damping bias showed up and had to be corrected.
+(1310 m main span, Norway), where the same damping bias was observed and corrected.
 
-## Run locally
+## Running locally
 
 ```bash
 python -m http.server 8000
 ```
 
-Then open http://localhost:8000. Tests of the Python core:
+Then open http://localhost:8000. Unit tests of the Python core:
 
 ```bash
 python -m pytest

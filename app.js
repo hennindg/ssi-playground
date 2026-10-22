@@ -1,6 +1,6 @@
 "use strict";
 
-// SSI-cov playground: page logic and plots. The computation itself is Python (python/ssi_core.py),
+// Interactive SSI-cov: page logic and plots. The computation itself is Python (python/ssi_core.py),
 // running in worker.js. This file reads the controls, asks the worker for results and draws them.
 
 const FS = 2;                 // sample rate [Hz]

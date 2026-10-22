@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SSI-cov playground</title>
-  <meta name="description" content="Covariance-driven stochastic subspace identification on a simulated girder, running in the browser.">
+  <title>Interactive SSI-cov</title>
+  <meta name="description" content="Covariance-driven stochastic subspace identification of a simulated girder with known modal properties, computed in the browser.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23161618'/%3E%3Cpath d='M5 21c3.5-11 7.5-11 11 0s7.5 11 11 0' stroke='%233987e5' stroke-width='2.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,7 +15,7 @@
   <header class="top">
     <div class="brand">
       <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 21c3.5-11 7.5-11 11 0s7.5 11 11 0" /></svg>
-      <h1>SSI-cov playground</h1>
+      <h1>Interactive SSI-cov</h1>
     </div>
     <nav class="links">
       <span id="status" class="status"><span class="dot"></span><span id="status-text">Starting</span></span>
@@ -30,7 +30,7 @@
 
   <main class="layout">
     <aside class="controls">
-      <p class="intro">A simply supported girder with known modes is excited by white noise and measured by accelerometers. SSI-cov identifies the modes from the record alone. Compare with the truth.</p>
+      <p class="intro">A simply supported girder with known modal properties is excited by white noise and measured by accelerometers. The modes are identified from the response alone and compared with the true values.</p>
 
       <section class="group">
         <div class="group-head">
@@ -144,9 +144,9 @@
       </article>
 
       <footer class="notes">
-        <p>Each mode is a single-degree-of-freedom oscillator with its own white-noise force, discretized exactly, so the true frequency and damping are known. Mode <i>k</i> has <i>k</i> half-waves along the girder; all modes have the same response level.</p>
-        <p>Identification: output covariances up to lag 2<i>s</i>&minus;1 in a block Toeplitz matrix, SVD, system matrix from the shift structure of the observability matrix (Peeters &amp; De Roeck, 1999). Stable poles are grouped into modes by single-linkage clustering on frequency difference + (1 &minus; MAC). Bias is identified minus true damping, averaged over the records run with the current settings.</p>
-        <p>Python and numpy run in the browser through <a href="https://pyodide.org">Pyodide</a>. The SSI code is taken from an <a href="https://github.com/hennindg/hardanger-oma">operational modal analysis of the Hardanger Bridge</a> (1310 m main span).</p>
+        <p>Simulation: each mode is a single-degree-of-freedom oscillator driven by independent white noise and discretized without approximation (zero-order hold), so its natural frequency and damping ratio are known exactly. Mode <i>k</i> has <i>k</i> half-waves along the girder, and all modes have the same response level.</p>
+        <p>Identification: output covariances up to time lag 2<i>s</i>&minus;1 are assembled in a block Toeplitz matrix, whose singular vectors and values are obtained from the eigen-decomposition of <i>T</i>&middot;<i>T</i><sup>T</sup>. The system matrix follows from the shift structure of the observability matrix (Peeters &amp; De Roeck, 1999). Stable poles are grouped into modes by single-linkage clustering on the relative frequency difference plus (1 &minus; MAC). The bias is the identified minus the true damping ratio, averaged over all records computed with the current settings.</p>
+        <p>The computations are implemented in Python and NumPy and run in the browser through <a href="https://pyodide.org">Pyodide</a>. The SSI-cov implementation is taken from an <a href="https://github.com/hennindg/hardanger-oma">operational modal analysis of the Hardanger Bridge</a> (1310 m main span).</p>
       </footer>
     </section>
   </main>

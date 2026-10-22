@@ -1,5 +1,5 @@
 """
-Computational core of the SSI playground. It runs in the browser (Pyodide, a Python interpreter
+Computational core of the interactive SSI-cov page. It runs in the browser (Pyodide, a Python interpreter
 compiled to WebAssembly) and in normal Python for the tests.
 
 Only numpy is used. scipy is not loaded in the browser, because it would make the page much
