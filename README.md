@@ -32,7 +32,8 @@ The computation is plain Python and numpy in [`python/ssi_core.py`](python/ssi_c
 Web Worker by [Pyodide](https://pyodide.org). The page itself (`index.html`, `app.js`, `style.css`)
 has no build step and no framework; the plots are hand-written SVG.
 
-The SSI and clustering functions come from an operational modal analysis of the Hardanger Bridge
+The SSI and clustering functions come from an
+[operational modal analysis of the Hardanger Bridge](https://github.com/hennindg/hardanger-oma)
 (1310 m main span, Norway), where the same damping bias showed up and had to be corrected.
 
 ## Run locally
