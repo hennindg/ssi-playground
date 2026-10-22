@@ -3,7 +3,7 @@
 Covariance-driven stochastic subspace identification (SSI-cov) of a simulated girder with known
 modal properties, computed in the browser.
 
-**[Open the application](https://hennindg.github.io/ssi-playground/)**
+**[Open the application](https://hennindg.github.io/interactive-ssi-cov/)**
 
 ![Screenshot](docs/screenshot.png)
 
